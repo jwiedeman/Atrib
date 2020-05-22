@@ -1,5 +1,7 @@
-ga.getAll()[0].get('name');
+ga.getAll()[0].get('name'); // helps for drifting GA id's due to GTM container increment
 
+
+// need to make a vanillajs version of this
 var currency = jQuery('SELECTOR').text();
 var number = Number(currency.replace(/[^0-9.-]+/g, "")); console.log(number)
 
@@ -19,6 +21,7 @@ element.addEventListener('click', function handler() {
   document.querySelector('[href*=tel]').addEventListener('click',function(){
     ga('gtm1.send', 'event', 'contact', 'submit', 'form')
     })
+
   // time on page
   let _time =0 
   let _step = 5000
@@ -28,11 +31,6 @@ element.addEventListener('click', function handler() {
     /// call your function here
   }, step);
 
-  setTimeout(function(){ alert("Hello"); }, 5000); //5s
-  setTimeout(function(){ alert("Hello"); }, 15000); //15s
-  setTimeout(function(){ alert("Hello"); }, 30000); //30s
-  setTimeout(function(){ alert("Hello"); }, 60000); //1m
-  setTimeout(function(){ alert("Hello"); }, 300000); //5m
 
   // scroll depth 
 
