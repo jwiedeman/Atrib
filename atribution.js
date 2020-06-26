@@ -1,28 +1,60 @@
-ga.getAll()[0].get('name'); // helps for drifting GA id's due to GTM container increment
+// action - page - 
 
 
-// need to make a vanillajs version of this
+ga.getAll()[0].get('name');
+// outbound events
+
+const _email = document.querySelectorAll("[href*='mailto']")
+function fire() {
+   console.log('asd')
+}
+_email.forEach(
+  function(_emailElement) {
+    _emailElement.addEventListener("click", fire,false);
+  }
+);
+
+
+
+
 var currency = jQuery('SELECTOR').text();
 var number = Number(currency.replace(/[^0-9.-]+/g, "")); console.log(number)
 
 
+// this will only execute once
 element.addEventListener('click', function handler() {
-    // this will only execute once
+    
     console.log('Only once!');
     this.removeEventListener('click', handler);
   });
 
-  // Email click
-  document.querySelector('[href*=tel]').addEventListener('click',function(){
-    ga('gtm1.send', 'event', 'contact', 'submit', 'form')
-    })
 
-    // Email click
-  document.querySelector('[href*=tel]').addEventListener('click',function(){
-    ga('gtm1.send', 'event', 'contact', 'submit', 'form')
-    })
+// mailto click
+  const _mailto = document.querySelectorAll("[href*='mailto']")
+  function fire() {
+     console.log('asd')
+  }
+  _mailto.forEach(
+    function(_mailElement) {
+      _mailElement.addEventListener("click", fire,false);
+    }
+  );
 
-  // time on page
+
+
+// tel click
+const _tel = document.querySelectorAll("[href*='tel']")
+function fire() {
+   console.log('asd')
+}
+_tel.forEach(
+  function(_telElement) {
+    _telElement.addEventListener("click", fire,false);
+  }
+);
+
+
+// time on page
   let _time =0 
   let _step = 5000
   window.setInterval(function(){
@@ -67,14 +99,40 @@ window.addEventListener('scroll', updateScrollPercentage)
 
 
 
-// event bus
+// event bus? 
+
+// intake an event, and send out to Google analytics && mads. 
+
+// Whitelist for facebook events? 
+contact , book , send 
+
+
 
 ingest page location element data 
 
 fbq
-bing
 
+microsoft ads
+
+// we will need to poll the page to see whats all loaded & active 
 urchinjs
 analytics.js
 ga.JS
 gtag.js
+
+hash the utm data 
+
+
+
+function contains(selector, text) {
+  var elements = document.querySelectorAll(selector);
+  return [].filter.call(elements, function(element){
+    return RegExp(text).test(element.textContent);
+  });
+}
+let _a = contains('a',"Brochure")
+for (i = 0; i < _a.length; i++) {
+  _a[i].addEventListener("click", function(){
+  ga('gtm1.send', 'event', 'button', 'click', 'brochure')
+})
+}
