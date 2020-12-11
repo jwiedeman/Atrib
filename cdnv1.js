@@ -1,1 +1,1 @@
-console.log('cdn script loaded')
+console.log('%c CDN script loaded ', ' color: white');
