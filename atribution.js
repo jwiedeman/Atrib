@@ -6,6 +6,8 @@ goal, to be able to work on any site. Use only EMCA5 and below js to ensure maxi
 // todo detect platform
 
 
+
+
 ga.getAll()[0].get('name'); // cycles through all of the GA id's loaded and gets the first ones name (id)
 
 
@@ -95,6 +97,8 @@ window.setInterval(function(){
 }, _step);
 
 
+
+
   // scroll depth 
 
   // Establish depth % levels
@@ -137,15 +141,16 @@ contact , book , send , post , create , sign , newsletter
 
 ingest page location element data 
 
-fbq
-
-microsoft ads
 
 // we will need to poll the page to see whats all loaded & active 
 urchinjs
 analytics.js
 ga.JS
 gtag.js
+fbq
+mads
+
+
 
 hash the utm data 
 
@@ -255,71 +260,75 @@ try {
 var _ids = [] // _underscore denotes not cleaned
 var log = console.log
 
-// Grab Urchinjs, Gaq, Ua, Ga, and gtag.js ID's
+try{ // Grab Urchinjs, Gaq, Ua, Ga, and gtag.js ID's
 document.querySelectorAll("[src*='google'][src*='?id']").forEach(function(el){
-_ids.push({'google_id' : el.src.split('=')[el.src.split('=').length-1]})
-}) // will grab google scripts being loaded in by html
+  log('Google case 1 - ',el.src.split('=')[el.src.split('=').length-1])
+  _ids.push({'google_id' : el.src.split('=')[el.src.split('=').length-1]})
+  }) // will grab google scripts being loaded in by html
+}
+catch(e){null}
 
-ga.getAll().forEach(function(id){{
-_ids.push({'google_id' : id.model.data.ia[":trackingId"]})
-}}) // will grab google scripts being loaded in by other means
+try{
+  ga.getAll().forEach(function(el){{
+    log('Google case 2 - ',el.model.data.ea[":trackingId"])
+    _ids.push({'google_id' : el.model.data.ea[":trackingId"]})
+    }}) // will grab google scripts being loaded in by other means
+}
+catch(e){null}
 
+try{
+  document.querySelectorAll("[src*='facebook'][src*='config']").forEach(function(el){
+    log('Facebook - ',el.src.split('config/')[1].split('?')[0])
+    _ids.push({'pixel_id' : el.src.split('config/')[1].split('?')[0] })
+  })
+}
+catch(e){null}
 
-document.querySelectorAll("[src*='facebook'][src*='config']").forEach(function(el){
-  _ids.push({'pixel_id' : el.src.split('config/')[1].split('?')[0] })
-})
-
-
-document.querySelectorAll("img[src*='bing']").forEach(function(el){
-  _ids.push({'microsoftads_id' : el.src.split('?ti=')[1].split('&Ver')[0]})
-})// Microsoft ads, have to be a bit wierd to get the ID. Current plan is to query all pageviews sent to mads, and extract the TI ID from there, to establish where to send to ,and account for named trackers 
+try{
+  document.querySelectorAll("img[src*='bing']").forEach(function(el){
+    log('Bing - ', el.src.split('?ti=')[1].split('&Ver')[0])
+    _ids.push({'microsoftads_id' : el.src.split('?ti=')[1].split('&Ver')[0]})
+  })// Microsoft ads, have to be a bit wierd to get the ID. Current plan is to query all pageviews sent to mads, and extract the TI ID from there, to establish where to send to ,and account for named trackers   
+}
+catch(e){null}
 
 
 _ids.filter((elem, index, self) => self.findIndex(
     (t) => {return (t.x === elem.x && t.y === elem.y)}) === index) // clean out potential duplicates
 var ids =  Array.from(new Set(_ids.map(e => JSON.stringify(e)))).map(ae => JSON.parse(ae)); 
 
-
-console.log(ids)
-
+log(ids)
 
 
 
-// Have to do a bunch of fancy shit, grab EVERYTHING, inner and outer string it, and join it all back together into a massive string because web devs are fucking insane and leave hella HMTL outside of the closing body tag, so its nicely on the view source, but not accessible by normal selectors like hmtl
+
+// Have to do a bunch of fancy shit, grab EVERYTHING, inner and outer string it, and join it all back together into a massive string because web devs are fucking insane and leave hella HMTL outside of the closing html tag(why magento 2, WHY), so its nicely on the view source, but not accessible by normal selectors like hmtl
 // CMS DETECTION
-var _pageScripts = [].map.call( document.scripts, function(node){
-    return node.textContent || node.innerText || "";
+var _pageScripts = [].map.call( document.scripts , function(node){
+  return node.textContent || node.innerText || "";
 }).join("");
+_pageScripts += document.documentElement // Take all the scripts in the document, and add it to the text of the entire dom
+// Build a string soup of the dom to run regex against. Regex has a 98% preformance advantage over js string search so this will be fast for everyone except I.E nerds, to extend, just collect data, then append it to the existing string, who cares about duplicates
 
-
-console.log(typeof _pageScripts,_pageScripts)
-
-// let shopify = (psuedodom.match(/bigcommerce/gi) || []).length;
 let cmsDetectiveCases = {
-  bigcommerce:(psuedodom.match(/bigcommerce/gi) || []).length,
-  wordpress:
+'bigcommerce' :(_pageScripts.match(/bigcommerce/gi) || []).length,
+'wordpress' :(_pageScripts.match(/wordpress/gi) || []).length,
+'shopify' :(_pageScripts.match(/shopify/gi) || []).length,
+'magento' : (_pageScripts.match(/magento/gi) || []).length, // M2 https://www.oshamanual.com/
+'wix' : (_pageScripts.match(/wix/gi) || []).length, // https://www.animalmusicweb.com/
+'drupal' : (_pageScripts.match(/drupal/gi) || []).length, // https://www.drupal.org/
+'joomla' : (_pageScripts.match(/joomla/gi) || []).length, // https://www.lejourlepluscourt.be
+'prestashop' : (_pageScripts.match(/prestashop/gi) || []).length, // https://www.maniac-auto.com/fr/
+'3dcart' : (_pageScripts.match(/3dcart/gi) || []).length, // https://www.unicusdecor.com/
+'squarespace' : (_pageScripts.match(/squarespace/gi) || []).length, // https://www.curibio.com/
 }
-let bigcommerce = (psuedodom.match(/bigcommerce/gi) || []).length;
-let wordpress = (psuedodom.match(/wordpress/gi) || []).length;
-let shopify = (psuedodom.match(/shopify/gi) || []).length;
-let magento = (psuedodom.match(/magento/gi) || []).length; // magento 1 vs 2? 
-let wix = (psuedodom.match(/wix/gi) || []).length;
 
-
-console.log(bigcommerce)
+console.log(Object.keys(cmsDetectiveCases).reduce(function(a, b){ return cmsDetectiveCases[a] > cmsDetectiveCases[b] ? a : b }),cmsDetectiveCases // returm the CMS with the highest mentions
+)
 
 
 
 
-
-// wordpress https://www.logicalposition.com/google-analytics-code-generator
-document.querySelector('html').innerHTML.includes('wordpress')
-
-// shopify https://lp-code-sandbox.myshopify.com/
-// just look for the trekkie object
-
-
-// Bigcommerce https://stromliving.com/
 
 
 
@@ -396,3 +405,66 @@ document.querySelector('html').innerHTML.includes('wordpress')
       }
   }
 })("docReady", window);
+
+
+
+
+// monkey patch to log post messages
+const pm = window.postMessage;
+window.postMessage = (msg, domain) => {
+    console.log(msg);
+    pm(msg, domain);
+}
+(function() {
+  var proxied = window.XMLHttpRequest.prototype.send;
+  window.XMLHttpRequest.prototype.send = function() {
+      console.log( arguments );
+      //Here is where you can add any code to process the request. 
+      //If you want to pass the Ajax request object, pass the 'pointer' below
+      var pointer = this
+      var intervalId = window.setInterval(function(){
+              if(pointer.readyState != 4){
+                      return;
+              }
+              console.log( pointer.responseText );
+              //Here is where you can add any code to process the response.
+              //If you want to pass the Ajax request object, pass the 'pointer' below
+              clearInterval(intervalId);
+
+      }, 1);//I found a delay of 1 to be sufficient, modify it as you need.
+      return proxied.apply(this, [].slice.call(arguments));
+  };
+
+
+})();
+
+
+// Base codes
+
+/* 
+
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-XXXXX-X']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
